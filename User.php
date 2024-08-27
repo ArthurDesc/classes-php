@@ -106,7 +106,40 @@ class User {
         return false;
     }
 
-    // Méthode pour obtenir toutes les informations de l'utilisateur
+    // FUNCTION TO GET ALL INFOS FROM USER
+
+
+    public function update($conn, $new_email, $new_firstname, $new_lastname) {
+        if ($this->id !== null) {
+            $query = "UPDATE utilisateurs SET email = ?, firstname = ?, lastname = ? WHERE id = ?";
+            $stmt = $conn->prepare($query);
+    
+            if ($stmt === false) {
+                die("Erreur lors de la préparation de la requête : " . $conn->error);
+            }
+    
+            // Lier les nouveaux paramètres à la requête
+            $stmt->bind_param("sssi", $new_email, $new_firstname, $new_lastname, $this->id);
+    
+            if ($stmt->execute()) {
+                // Mettre à jour les attributs de l'objet après une mise à jour réussie
+                $this->email = $new_email;
+                $this->firstname = $new_firstname;
+                $this->lastname = $new_lastname;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    // CHECK IF USER IS CONNECTED AND RETURN FALSE OR TRUE
+    public function isConnected() {
+        return $this->id !== null;
+    }
+    
+
     public function getAllInfos($conn) {
         $query = "SELECT * FROM utilisateurs WHERE id = ?";
         $stmt = $conn->prepare($query);
@@ -125,6 +158,20 @@ class User {
 
         return $result->fetch_assoc();
     }
+
+    public function getLogin () {
+        return $this->login;
+    }
+    public function getEmail () {
+        return $this->email;
+    }
+    public function getFirstname () {
+        return $this->firstname;
+    }
+    public function getLastname () {
+        return $this->lastname;
+    }
+    
 }
 
 ?>
