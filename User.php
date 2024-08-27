@@ -1,50 +1,48 @@
 <?php
 
-include "./_db.php";
+include "./db.php";
 
 class User {
     private $id;
 
     public $login;
-    public $password;  // Assurez-vous d'avoir cet attribut pour stocker le mot de passe
     public $email;
     public $firstname;
     public $lastname;
-    
+
     public function __construct() {
         $this->id = null;
         $this->login = "";
-        $this->password = ""; // Initialiser le mot de passe
         $this->email = "";
         $this->firstname = "";
         $this->lastname = "";
     }
 
     // Méthode pour l'enregistrement
-    public function register($conn) {
+    public function register($conn, $password) {
         $query = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-
+    
         if ($stmt === false) {
             die("Erreur lors de la préparation de la requête : " . $conn->error);
         }
-
-        // Hacher le mot de passe
-        $hashed_password = password_hash($this->password, PASSWORD_DEFAULT);
-
+    
+        // Hacher le mot de passe passé en paramètre
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    
         // Liaison des paramètres
         $stmt->bind_param("sssss", $this->login, $hashed_password, $this->email, $this->firstname, $this->lastname);
-
+    
         if ($stmt->execute()) {
             // Assigner l'ID généré à l'objet après l'exécution de la requête
             $this->id = $conn->insert_id;
-            // Retourner les informations de l'utilisateur nouvellement créé
             return $this->getAllInfos($conn);
         } else {
             return false;
         }
     }
     
+
     // Méthode pour la connexion
     public function connect($conn, $login, $password) {
         $query = "SELECT * FROM utilisateurs WHERE login = ?";
@@ -80,7 +78,6 @@ class User {
     public function disconnect() {
         $this->id = null;
         $this->login = "";
-        $this->password = ""; // Réinitialiser le mot de passe
         $this->email = "";
         $this->firstname = "";
         $this->lastname = "";
@@ -106,9 +103,7 @@ class User {
         return false;
     }
 
-    // FUNCTION TO GET ALL INFOS FROM USER
-
-
+    // Méthode pour mettre à jour les informations utilisateur
     public function update($conn, $new_email, $new_firstname, $new_lastname) {
         if ($this->id !== null) {
             $query = "UPDATE utilisateurs SET email = ?, firstname = ?, lastname = ? WHERE id = ?";
@@ -134,12 +129,12 @@ class User {
         return false;
     }
 
-    // CHECK IF USER IS CONNECTED AND RETURN FALSE OR TRUE
+    // Vérifier si l'utilisateur est connecté
     public function isConnected() {
         return $this->id !== null;
     }
     
-
+    // Obtenir toutes les informations utilisateur
     public function getAllInfos($conn) {
         $query = "SELECT * FROM utilisateurs WHERE id = ?";
         $stmt = $conn->prepare($query);
@@ -159,19 +154,27 @@ class User {
         return $result->fetch_assoc();
     }
 
-    public function getLogin () {
+    // Méthodes pour obtenir les informations utilisateur
+    public function getLogin() {
         return $this->login;
     }
-    public function getEmail () {
+    public function getEmail() {
         return $this->email;
     }
-    public function getFirstname () {
+    public function getFirstname() {
         return $this->firstname;
     }
-    public function getLastname () {
+    public function getLastname() {
         return $this->lastname;
     }
-    
+    public function getId() {
+        return $this->id;
+    }
+
+    public function setId($id) {
+        $this->id = $id;
+    }
 }
+
 
 ?>
