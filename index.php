@@ -144,7 +144,7 @@ $is_logged_in = isset($_SESSION['user_login']);
 </head>
 <body style="display: flex;">
     <h1>Page d'accueil</h1>
-    
+        
 
     <?php if ($is_logged_in): ?>
         <p>Bienvenue, <?php echo htmlspecialchars($_SESSION['user_login']); ?>!</p>
