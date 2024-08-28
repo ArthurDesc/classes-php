@@ -4,7 +4,7 @@ include "./db.php";
 
 class User {
     private $id;
-    private $password;   // Changed to private for better encapsulation
+    private $password;   
     public $login;
     public $email;
     public $firstname;
@@ -18,28 +18,26 @@ class User {
         $this->lastname = "";
     }
 
-    public function register($conn, $password) {
-        $query = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES (:login, :password, :email, :firstname, :lastname)";
-        $stmt = $conn->prepare($query);
-    
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    
-        $params = [
-            ':login' => $this->login,
-            ':password' => $hashed_password,
-            ':email' => $this->email,
-            ':firstname' => $this->firstname,
-            ':lastname' => $this->lastname
-        ];
-    
-        if ($stmt->execute($params)) {
-            $this->id = $conn->lastInsertId();
-            return $this->getAllInfos($conn);
-        } else {
+    public function register(PDO $conn, string $password): bool {
+        // Vérifiez si l'email existe déjà
+        $checkEmailQuery = "SELECT COUNT(*) FROM utilisateurs WHERE email = ?";
+        $stmt = $conn->prepare($checkEmailQuery);
+        $stmt->execute([$this->email]);
+        
+        if ($stmt->fetchColumn() > 0) {
+            // Email déjà utilisé
             return false;
         }
+    
+        // Hachage du mot de passe
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    
+        // Insertion de l'utilisateur
+        $query = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        return $stmt->execute([$this->login, $hashedPassword, $this->email, $this->firstname, $this->lastname]);
     }
-
+    
     public function connect($conn, $login, $password) {
         $query = "SELECT * FROM utilisateurs WHERE login = :login";
         $stmt = $conn->prepare($query);
@@ -162,4 +160,30 @@ class User {
             $this->lastname = $row['lastname'];
         }
     }
+
+    public function getPassword() {
+        return $this->password;
+    }
+
+    public function setPassword($password) {
+        $this->password = $password;
+    }
+    public function getLogin() {
+        return $this->login;
+    }
+    public function getEmail() {
+        return $this->email;
+    }
+    public function getFirstname() {
+        return $this->firstname;
+    }
+    public function getLastname() {
+        return $this->lastname;
+    }
+    public function getId() {
+        return $this->id;
+    }
+
+
+    
 }

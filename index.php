@@ -15,13 +15,14 @@ $deletion_error = "";
 $update_success = "";
 $update_error = "";
 
+// Récupérer tous les utilisateurs
 $users = User::getAllUsers($conn);
 
 // Vérifier si l'utilisateur est connecté
-if (isset($_SESSION['user_id'])) {
+if (User::isConnected()) {
     $user = new User();
     $user->setId($_SESSION['user_id']);
-    $user->fetchDetails($conn); // Suppose que vous avez une méthode fetchDetails pour charger les détails de l'utilisateur
+    $user->fetchDetails($conn); // Charge les détails de l'utilisateur
 } else {
     $user = null;
 }
@@ -55,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $user = new User();
         $user->login = $register_login;
-        $user->password = $register_password; // Le mot de passe sera haché dans la méthode register
+        $user->setPassword($register_password); // Utilisation du setter
         $user->email = $register_email;
         $user->firstname = $register_firstname;
         $user->lastname = $register_lastname;
@@ -118,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $new_firstname = $_POST['new_firstname'];
             $new_lastname = $_POST['new_lastname'];
             $new_login = $_POST['new_login'];
-            $new_password= $_POST['new_password'];
+            $new_password = $_POST['new_password'];
 
             if ($user->update($conn, $new_email, $new_firstname, $new_lastname, $new_login, $new_password)) {
                 $update_success = "Vos informations ont été mises à jour avec succès.";
@@ -178,7 +179,7 @@ $is_logged_in = isset($_SESSION['user_login']);
                     <input type="text" id="login" name="new_login" value="<?php echo htmlspecialchars($user->getLogin()); ?>" required><br><br>
 
                     <label for="password">Password:</label>
-                    <input type="text" id="password" name="new_password" ><br><br>
+                    <input type="password" id="password" name="new_password"><br><br>
 
                     <input type="hidden" name="action" value="update_profile">
                     <input type="submit" value="Mettre à jour">
