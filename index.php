@@ -19,7 +19,7 @@ $update_error = "";
 $users = User::getAllUsers($conn);
 
 // Vérifier si l'utilisateur est connecté
-if (User::isConnected()) {
+if (isset($_SESSION['user_id'])) {
     $user = new User();
     $user->setId($_SESSION['user_id']);
     $user->fetchDetails($conn); // Charge les détails de l'utilisateur
@@ -142,8 +142,9 @@ $is_logged_in = isset($_SESSION['user_login']);
     <meta charset="UTF-8">
     <title>Page d'accueil</title>
 </head>
-<body>
+<body style="display: flex;">
     <h1>Page d'accueil</h1>
+    
 
     <?php if ($is_logged_in): ?>
         <p>Bienvenue, <?php echo htmlspecialchars($_SESSION['user_login']); ?>!</p>
@@ -198,9 +199,11 @@ $is_logged_in = isset($_SESSION['user_login']);
         <?php endif; ?>
 
     <?php else: ?>
-        <h2>Connexion</h2>
-        <form action="index.php" method="post">
-            <label for="login">Login:</label>
+        <div>
+
+            <h2>Connexion</h2>
+            <form action="index.php" method="post">
+                <label for="login">Login:</label>
             <input type="text" id="login" name="login" required><br><br>
 
             <label for="password">Mot de passe:</label>
@@ -208,11 +211,13 @@ $is_logged_in = isset($_SESSION['user_login']);
 
             <input type="submit" value="Se connecter">
         </form>
+    </div>
 
         <?php if (!empty($login_error)): ?>
             <p style="color: red;"><?php echo htmlspecialchars($login_error); ?></p>
         <?php endif; ?>
 
+        <div>
         <h2>Inscription</h2>
         <form action="index.php" method="post">
             <label for="register_login">Login:</label>
@@ -223,7 +228,7 @@ $is_logged_in = isset($_SESSION['user_login']);
 
             <label for="register_email">Email:</label>
             <input type="email" id="register_email" name="register_email" required><br><br>
-
+            
             <label for="register_firstname">Prénom:</label>
             <input type="text" id="register_firstname" name="register_firstname" required><br><br>
 
@@ -232,6 +237,7 @@ $is_logged_in = isset($_SESSION['user_login']);
 
             <input type="submit" value="S'inscrire">
         </form>
+        </div>
 
         <?php if (!empty($registration_error)): ?>
             <p style="color: red;"><?php echo htmlspecialchars($registration_error); ?></p>
@@ -239,6 +245,7 @@ $is_logged_in = isset($_SESSION['user_login']);
     <?php endif; ?>
 
     <br />
+    <div>
     <table>
         <thead>
             <tr>
@@ -248,20 +255,22 @@ $is_logged_in = isset($_SESSION['user_login']);
                 <th>Nom</th>
             </tr>
         </thead>
-        <tbody>
-            <?php if ($users): ?>
-                <h2> Liste des utilisateurs (<?php echo count($users); ?>) :</h2>   
-                <?php foreach ($users as $user): ?>
+
+            <tbody>
+                <?php if ($users): ?>
+                    <h2> Liste des utilisateurs (<?php echo count($users); ?>) :</h2>   
+                    <?php foreach ($users as $user): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($user->getLogin() ?? ''); ?></td>
                         <td><?php echo htmlspecialchars($user->getEmail() ?? ''); ?></td>
                         <td><?php echo htmlspecialchars($user->getFirstname() ?? ''); ?></td>
                         <td><?php echo htmlspecialchars($user->getLastname() ?? ''); ?></td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
 
 </body>
 </html>
