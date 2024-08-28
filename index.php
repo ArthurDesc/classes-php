@@ -1,7 +1,7 @@
 <?php
 // Inclure les fichiers nécessaires
 require_once 'db.php';
-require_once 'User.php';
+require_once 'user-pdo.php';
 
 // Démarrer la session
 session_start();
@@ -12,6 +12,19 @@ $registration_error = "";
 $deletion_confirmation = "";
 $deletion_success = "";
 $deletion_error = "";
+$update_success = "";
+$update_error = "";
+
+$users = User::getAllUsers($conn);
+
+// Vérifier si l'utilisateur est connecté
+if (isset($_SESSION['user_id'])) {
+    $user = new User();
+    $user->setId($_SESSION['user_id']);
+    $user->fetchDetails($conn); // Suppose que vous avez une méthode fetchDetails pour charger les détails de l'utilisateur
+} else {
+    $user = null;
+}
 
 // Vérifier si le formulaire a été soumis
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -97,6 +110,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: index.php");
         exit();
     }
+
+    // Mise à jour du profil
+    if (isset($_POST['action']) && $_POST['action'] === 'update_profile') {
+        if ($user) {
+            $new_email = $_POST['new_email'];
+            $new_firstname = $_POST['new_firstname'];
+            $new_lastname = $_POST['new_lastname'];
+            $new_login = $_POST['new_login'];
+            $new_password= $_POST['new_password'];
+
+            if ($user->update($conn, $new_email, $new_firstname, $new_lastname, $new_login, $new_password)) {
+                $update_success = "Vos informations ont été mises à jour avec succès.";
+                $_SESSION['user_login'] = $user->getLogin(); // Optionnel : Recharger les informations de l'utilisateur
+            } else {
+                $update_error = "Une erreur est survenue lors de la mise à jour de vos informations.";
+            }
+        } else {
+            $update_error = "Vous devez être connecté pour mettre à jour vos informations.";
+        }
+    }
 }
 
 $is_logged_in = isset($_SESSION['user_login']);
@@ -130,6 +163,29 @@ $is_logged_in = isset($_SESSION['user_login']);
                 <a href="index.php">Annuler</a>
             </form>
         <?php else: ?>
+            <?php if ($user): ?>
+                <form action="index.php" method="post">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="new_email" value="<?php echo htmlspecialchars($user->getEmail()); ?>" required><br><br>
+
+                    <label for="firstname">Prénom:</label>
+                    <input type="text" id="firstname" name="new_firstname" value="<?php echo htmlspecialchars($user->getFirstname()); ?>" required><br><br>
+
+                    <label for="lastname">Nom:</label>
+                    <input type="text" id="lastname" name="new_lastname" value="<?php echo htmlspecialchars($user->getLastname()); ?>" required><br><br>
+
+                    <label for="login">Login:</label>
+                    <input type="text" id="login" name="new_login" value="<?php echo htmlspecialchars($user->getLogin()); ?>" required><br><br>
+
+                    <label for="password">Password:</label>
+                    <input type="text" id="password" name="new_password" ><br><br>
+
+                    <input type="hidden" name="action" value="update_profile">
+                    <input type="submit" value="Mettre à jour">
+                </form>
+                <?php if ($update_success): ?><p style="color: green;"><?php echo htmlspecialchars($update_success); ?></p><?php endif; ?>
+            <?php endif; ?>
+
             <form action="index.php" method="post">
                 <input type="hidden" name="action" value="logout">
                 <input type="submit" value="Se déconnecter">
@@ -181,14 +237,30 @@ $is_logged_in = isset($_SESSION['user_login']);
         <?php endif; ?>
     <?php endif; ?>
 
-    <tr>
-        <th>Id</th>
-        <th>Login</th>
-        <th>Email</th>
-        <th>Prénom</th>
-        <th>Nom</th>
-        <th>Actions</th>
-        
-    </tr>
+    <br />
+    <table>
+        <thead>
+            <tr>
+                <th>Login</th>
+                <th>Email</th>
+                <th>Prénom</th>
+                <th>Nom</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($users): ?>
+                <h2> Liste des utilisateurs (<?php echo count($users); ?>) :</h2>   
+                <?php foreach ($users as $user): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($user->getLogin() ?? ''); ?></td>
+                        <td><?php echo htmlspecialchars($user->getEmail() ?? ''); ?></td>
+                        <td><?php echo htmlspecialchars($user->getFirstname() ?? ''); ?></td>
+                        <td><?php echo htmlspecialchars($user->getLastname() ?? ''); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+
 </body>
 </html>

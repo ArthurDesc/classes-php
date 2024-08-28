@@ -6,11 +6,14 @@ $username = "root";
 $password = "";
 $database = "classes";
 
-// Créer une connexion
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Vérifier la connexion
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    // Créer une connexion PDO
+    $conn = new PDO("mysql:host=$servername;dbname=$database;charset=utf8", $username, $password);
+    
+    // Configurer PDO pour afficher les erreurs sous forme d'exceptions
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    // Si une erreur survient, afficher un message et arrêter le script
+    die("Connection failed: " . $e->getMessage());
 }
 ?>
